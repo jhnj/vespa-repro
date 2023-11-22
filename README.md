@@ -33,7 +33,10 @@ Error: invalid query: 400 Bad Request
     }
 }
 ```
-## 5. Change the cross-encoder re-ranking to `second-phase` instead of `global-phase`, deploy, and things work as expected.
+## 5. No error
+The query works as expected if you do either of these:
+- Change the cross-encoder re-ranking to `second-phase` instead of `global-phase`
+- Add `match-features: best_input`
 ```
 ~/c/vespa-repro ❯❯❯ vespa query 'select * from repro where true'
 {

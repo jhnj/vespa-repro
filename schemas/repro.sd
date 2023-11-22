@@ -34,8 +34,6 @@ schema repro {
             }
             rerank-count: 1
         }
-        # match-features {
-            # best_input
-        # }
+        # match-features: best_input
     }
 }
