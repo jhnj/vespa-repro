@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services version="1.0">
+    <container id="container" version="1.0">
+
+        <search />
+        <document-processing />
+        <document-api />
+
+        <component id="tokenizer" type="hugging-face-tokenizer">
+            <model url="https://huggingface.co/bert-base-uncased/raw/main/tokenizer.json"/>
+        </component>
+
+
+    </container>
+    <content id="repro" version="1.0">
+        <redundancy>1</redundancy>
+        <documents>
+            <document type="repro" mode="index" />
+            <document-processing cluster="container" />
+        </documents>
+        <nodes>
+            <node distribution-key="0" hostalias="node1" />
+        </nodes>
+    </content>
+</services>

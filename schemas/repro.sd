@@ -1,0 +1,63 @@
+schema repro {
+    document repro {
+        field id type string {
+            indexing: attribute | summary
+        }
+        field chunks type array<string> {
+            indexing: index | summary
+        }
+        field embeddings type tensor<bfloat16>(i{}, x[1]) {
+            indexing: attribute | index
+            attribute {
+                distance-metric: angular
+            }
+        }
+    }
+    field text_token_ids type tensor<float>(i{}, d0[512])  {
+        indexing: input chunks | embed tokenizer | attribute
+    }
+
+    onnx-model minilmranker {
+        file: models/msmarco_v2.onnx
+        input input_ids: input_ids
+        input attention_mask: attention_mask
+        input token_type_ids: token_type_ids
+    }
+
+    rank-profile default {
+        inputs {
+            query(query_embedding) tensor<bfloat16>(x[384])
+            query(query_token_ids) tensor<float>(d0[32])
+        }
+
+
+        first-phase {
+            expression {
+                closeness(field, embeddings)
+            }
+        }
+
+        function best_input() {
+            expression: reduce(closest(embeddings)*attribute(text_token_ids), max, i)
+        }
+
+        function input_ids() {
+            expression: tokenInputIds(256, query(query_token_ids), best_input)
+        }
+
+        function token_type_ids() {
+            expression: tokenTypeIds(256, query(query_token_ids), best_input)
+        }
+
+        function attention_mask() {
+            expression: tokenAttentionMask(256, query(query_token_ids), best_input)
+        }
+
+        global-phase {
+            expression {
+                onnx(minilmranker){d0:0,d1:0}
+            }
+            rerank-count: 1
+        }
+    }
+}
