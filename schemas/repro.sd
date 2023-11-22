@@ -17,20 +17,7 @@ schema repro {
         indexing: input chunks | embed tokenizer | attribute
     }
 
-    onnx-model minilmranker {
-        file: models/msmarco_v2.onnx
-        input input_ids: input_ids
-        input attention_mask: attention_mask
-        input token_type_ids: token_type_ids
-    }
-
     rank-profile default {
-        inputs {
-            query(query_embedding) tensor<bfloat16>(x[384])
-            query(query_token_ids) tensor<float>(d0[32])
-        }
-
-
         first-phase {
             expression {
                 closeness(field, embeddings)
@@ -41,23 +28,14 @@ schema repro {
             expression: reduce(closest(embeddings)*attribute(text_token_ids), max, i)
         }
 
-        function input_ids() {
-            expression: tokenInputIds(256, query(query_token_ids), best_input)
-        }
-
-        function token_type_ids() {
-            expression: tokenTypeIds(256, query(query_token_ids), best_input)
-        }
-
-        function attention_mask() {
-            expression: tokenAttentionMask(256, query(query_token_ids), best_input)
-        }
-
         global-phase {
             expression {
-                onnx(minilmranker){d0:0,d1:0}
+                sum(best_input)
             }
             rerank-count: 1
         }
+        # match-features {
+            # best_input
+        # }
     }
 }
